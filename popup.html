@@ -173,7 +173,7 @@ function print_entry(arr) {
 //    str += '<a class="author_photo" target="_blank" href="' + profile_url + '"><img class="author_photo" src="' + photo + '"></a>';
     str += '<div class="author_header"><a class="author" target="_blank" href="' + profile_url + '">' + author + '</a>';
     //str += ' - ' + type;
-    str += ' - Public';
+//    str += ' - Public';
     str += ' - ' + date;
     str += '</div><div class="buzz_text">' + text;
 
@@ -198,7 +198,7 @@ function print_entry(arr) {
     str += '</div>';
 
     if(comments.length > 0) {
-        str += '<div class="buzz_comments">'
+        str += '<div class="buzz_comments">';
         for(var i=0;i<comments.length;i++) {
             str += print_comment(comments[i]);
         }
