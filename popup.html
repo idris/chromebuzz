@@ -1,0 +1,272 @@
+<style>
+body {
+    min-width: 357px;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    font: normal 12px/15px helvetica, arial, sans-serif;
+    color: #000;
+}
+
+.buzz_logo {
+    margin: 0;
+    border: 0;
+    width: auto;
+    height: auto;
+    margin-bottom: 5px;
+}
+
+img {
+    margin: 5px;
+    border: 1px solid black;
+    vertical-align: middle;
+    width: 75px;
+    height: 75px;
+    -webkit-border-radius: 2px;
+}
+
+.buzz {
+    margin: 0 20px 5px 0;
+    opacity: 1;
+}
+
+.buzz:hover { opacity: .9; }
+
+.author_header {
+    background-color: #6694E3;
+    color: #fff;
+    padding: 3px 5px;
+    -webkit-border-top-left-radius: 4px;
+    -webkit-border-top-right-radius: 4px;
+    margin: 0;
+}
+
+.author_header a, .author_header a:visited {
+    color: #fff;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.buzz_text {
+    border-left: 1px solid #c9c9c9;
+    border-right: 1px solid #c9c9c9;
+    margin: 0 0 0 0;
+    padding: 5px;
+}
+
+.buzz_comments {
+    background-color: #F9F9F9;
+    border: 1px solid #c9c9c9;
+    padding: 5px 5px 0px 5px;
+    -webkit-border-bottom-right-radius: 4px;
+    -webkit-border-bottom-left-radius: 4px;
+}
+
+.buzz_no_comments {
+/*    background-color: #F9F9F9;*/
+    border: 1px solid #c9c9c9;
+    border-top: 0;
+    padding: 0;
+    padding-bottom: 5px;
+    -webkit-border-bottom-right-radius: 4px;
+    -webkit-border-bottom-left-radius: 4px;
+}
+
+.comment_author { font-weight: bold; padding-right: 5px; }
+
+.buzz_comments a, .buzz_comments a:visited {
+    color: #2A5DB0;
+    text-decoration: none;
+}
+
+.buzz_comments a:hover {
+    text-decoration: underline;
+}
+
+.comment_timestamp {
+    color: #a9a9a9;
+    padding: 0 5px;
+}
+
+.comment {
+    margin: 0 0 5px;
+}
+
+.author_photo {
+    width: 48px;
+    height: 48px;
+}
+
+</style>
+
+<script src="date.extensions.js"></script>
+<script>
+var ik = localStorage["ik"];
+var req = null;
+
+function print(str) {
+    var el = document.createElement("div");
+    el.innerHTML = str;
+    document.body.appendChild(el);
+}
+
+function get_buzzed() {
+    if(ik == null) {
+        print('Please login to <a href="http://mail.google.com/mail/" target="gmail">Gmail</a> to use this extension.');
+    } else {
+        req = new XMLHttpRequest();
+        req.open(
+            "GET",
+            "https://mail.google.com/mail/?ui=2&ik=" + ik + "&view=tl&start=0&num=40&rt=h&search=buzz",
+            true);
+        req.onload = parseBuzz;
+        req.onerror = function() {
+            get_iked();
+        };
+        req.send(null);
+    }
+}
+
+function get_iked() {
+    req = new XMLHttpRequest();
+    req.open(
+        "GET",
+        "https://mail.google.com/mail/?ui=2",
+        true);
+    req.onload = getIk;
+    req.onerror = function() {
+        print('Please login to <a href="http://mail.google.com/mail/" target="gmail">Gmail</a> to use this extension.');
+        localStorage["ik"] = ik = null;
+    };
+    req.send(null);
+}
+
+function _A() {}
+
+function print_comment(comment) {
+    var author_email = comment[0];
+    var author = comment[1];
+    var text = comment[2];
+    var date = new Date(comment[3]).toRelativeTime();
+    var profile_url = comment[10];
+    var str = '<div class="comment">';
+    str += '<a class="comment_author" href="' + profile_url + '" target="_blank">' + author + '</a> - ';
+    str += text + '<span class="comment_timestamp">' + date + '</span>';
+    str += '</div>';
+    return str;
+}
+
+function print_entry(arr) {
+    var str = '<div class="buzz">';
+    var buzz = arr[18][0];
+    var author_email = buzz[1];
+    var type = buzz[2];
+    var author = buzz[3];
+    var text = buzz[4]; //14 //20
+    var date = new Date(buzz[5]).toRelativeTime();
+    var comments = buzz[7];
+    var photo = 'http://mail.google.com/' + buzz[19];
+    var profile_url = buzz[24];
+    var buzz_url = buzz[21];
+
+//    str += photo;
+//    str += '<a class="author_photo" target="_blank" href="' + profile_url + '"><img class="author_photo" src="' + photo + '"></a>';
+    str += '<div class="author_header"><a class="author" target="_blank" href="' + profile_url + '">' + author + '</a>';
+    //str += ' - ' + type;
+    str += ' - Public';
+    str += ' - ' + date;
+    str += '</div><div class="buzz_text">' + text;
+
+    try {
+        // attachments
+//        var attached_image = buzz[11][0][5][1];
+//        var attached_image_w = buzz[11][0][5][2];
+//        var attached_image_h = buzz[11][0][5][3];
+        var thumbs = buzz[11][0][41];
+        if(thumbs.length > 1) {
+            str += '<div class="buzz_attachments">';
+            for(var i=0;i<thumbs.length-1;i++) {
+                var attached_image_thumb = buzz[11][0][41][i][1];
+                var attached_image_thumb_w = buzz[11][0][41][i][2];
+                var attached_image_thumb_h = buzz[11][0][41][i][3];
+                str += '<img src="' + attached_image_thumb + '">';
+            }
+            str += '</div>';
+        }
+    } catch(ex) {}
+
+    str += '</div>';
+
+    if(comments.length > 0) {
+        str += '<div class="buzz_comments">'
+        for(var i=0;i<comments.length;i++) {
+            str += print_comment(comments[i]);
+        }
+        str += '</div>';
+    } else {
+        str += '<div class="buzz_no_comments"></div>';
+    }
+    str += '</div>';
+    return str;
+}
+
+function cleanIt(arr) {
+    var str = '';
+    arr = arr.splice(3);
+    for(var i=0;i<arr.length;i++) {
+        str += print_entry(arr[i]);
+    }
+    var el = document.createElement('div');
+    el.innerHTML = str;
+    document.body.appendChild(el);
+}
+
+function parseBuzz() {
+    var junk = req.responseText;
+    var idx = junk.indexOf('<scr'+'ipt><!--\nD(["tb"')+15;
+    if(idx < 20) {
+        localStorage["ik"] = ik = null;
+        get_iked();
+        return;
+    }
+    junk = junk.substring(idx);
+    junk = junk.substring(0, junk.indexOf(');\n\n//--></scr'+'ipt>'));
+    var el = document.createElement("div");
+    el.innerHTML = junk;
+//    document.body.appendChild(el);
+
+    var data = eval('('+junk+')');
+    cleanIt(data);
+}
+
+function getIk() {
+    var junk = req.responseText;
+    junk = junk.substring(junk.indexOf('var GLOBALS'));
+    junk = junk.substring(0, junk.indexOf('mail.google.com/support'));
+    for(var i=0;i<9;i++) {
+        junk = junk.substring(junk.indexOf(',')+1);
+    }
+    junk = junk.substring(0, junk.indexOf(','));
+    junk = junk.substring(1, junk.length-1);
+    localStorage["ik"] = ik = junk;
+    get_buzzed();
+}
+
+function showBuzz() {
+  var entries = req.responseXML.getElementsByTagName("content");
+
+  for (var i = 0, entry; entry = entries[i]; i++) {
+    var el = document.createElement("div");
+    el.innerHTML = entry.childNodes[0].nodeValue;
+    document.body.appendChild(el);
+  }
+}
+
+if(ik == null) {
+    get_iked();
+} else {
+    get_buzzed();
+}
+</script>
+
+<a target="buzz" href="https://mail.google.com/mail/#buzz"><img class="buzz_logo" src="buzz_logo_small.png"></a>
