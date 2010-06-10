@@ -114,10 +114,12 @@ function get_buzzed() {
     if(ik == null) {
         print('Please login to <a href="http://mail.google.com/mail/" target="gmail">Gmail</a> to use this extension.');
     } else {
+        //prompt("", ik);
         req = new XMLHttpRequest();
         req.open(
             "GET",
-            "https://mail.google.com/mail/?ui=2&ik=" + ik + "&view=tl&start=0&num=40&rt=h&search=buzz",
+            //"https://mail.google.com/mail/?ui=2&ik=" + ik + "&view=tl&start=0&num=40&rt=h&search=buzz",
+            "https://mail.google.com/mail/?ui=2&ik=" + ik + "&view=tl&start=0&num=40&search=buzz", 
             true);
         req.onload = parseBuzz;
         req.onerror = function() {
@@ -232,19 +234,27 @@ function fixLinks() {
 
 function parseBuzz() {
     var junk = req.responseText;
-    var idx = junk.indexOf('<scr'+'ipt><!--\nD(["tb"')+15;
+    var idx = junk.indexOf('["tb",')+8;
     if(idx < 20) {
         localStorage["ik"] = ik = null;
         get_iked();
         return;
     }
     junk = junk.substring(idx);
-    junk = junk.substring(0, junk.indexOf(');\n\n//--></scr'+'ipt>'));
-    var el = document.createElement("div");
-    el.innerHTML = junk;
-//    document.body.appendChild(el);
-
-    var data = eval('('+junk+')');
+    var idx2 = junk.indexOf('["tb"');
+    if (idx2 < 0){
+      idx2 = junk.indexOf('["te"');
+    }
+    idx2 -= 3;
+    junk = junk.substring(0, idx2);    
+    //alert(junk.substring(0, 20));
+    //alert(junk.substring(junk.length - 20));
+    var data;
+    try{
+      data = eval('('+junk+')');
+    }catch(e){
+      alert(e.message);
+    }
     cleanIt(data);
 }
 
