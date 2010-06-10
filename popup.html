@@ -247,15 +247,16 @@ function parseBuzz() {
     }
     idx2 -= 3;
     junk = junk.substring(0, idx2);    
-    //alert(junk.substring(0, 20));
-    //alert(junk.substring(junk.length - 20));
     var data;
     try{
       data = eval('('+junk+')');
-    }catch(e){
-      alert(e.message);
+      cleanIt(data);
+   }catch(e){
+      var el = document.createElement("div");	 	
+      el.innerHTML = "Error happens. Please report this issue <a href='http://github.com/idris/chromebuzz/issues'>here</a>";
+      document.body.appendChild(el);
+      fixLinks();
     }
-    cleanIt(data);
 }
 
 function getIk() {
