@@ -1,6 +1,6 @@
 {
 	"name": "Chrome Buzz",
-	"version": "0.9.7",
+	"version": "1.0.0",
 	"description": "Get Google Buzz notifications, and buzz from Chrome!",
 	"icons": {
 	    "48": "icon_48.png",
@@ -11,7 +11,8 @@
 		"popup": "popup.html"
 	},
 	"permissions": [
-		"http://buzz.googleapis.com/",
-		"https://mail.google.com/"
+		"https://www.googleapis.com/buzz/",
+		"https://mail.google.com/",
+		"tabs"
 	]
 }

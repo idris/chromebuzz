@@ -97,6 +97,50 @@ img {
     height: 48px;
 }
 
+/* buzz button */
+a.google-buzz-button, a.google-buzz-button:visited, a.google-buzz-button:hover {
+  text-decoration: none;
+  float: right;
+  margin: 7px 22px 0 0;
+  padding: 0;
+}
+a.google-buzz-button .buzz-counter {
+  background: transparent url(http://www.gstatic.com/buzz/api/images/buzz-counter.png) 0 0  no-repeat;
+  display: inline-block;
+  text-align:center;
+  text-shadow:2px 2px 3px #000;
+  margin: 0;
+  padding: 10px 0 0 0;
+  width:50px;
+  height:57px;
+  color:white;
+  font-family:sans-serif;
+  text-decoration: none;
+  font-size:24px;
+  line-height: 24px;
+  font-weight:bold;
+}
+a.google-buzz-button .buzz-counter-long .google-buzz-100 {font-size: 11px;}
+a.google-buzz-button .buzz-counter-long .google-buzz-1000 {font-size: 11px;}
+a.google-buzz-button .buzz-counter-long .google-buzz-10000 {font-size: 10px;}
+a.google-buzz-button .buzz-counter-long .google-buzz-100000 {font-size: 9px;}
+a.google-buzz-button .buzz-counter-long .google-buzz-1000000 {font-size: 8px;}
+a.google-buzz-button .buzz-counter-long {
+  background: transparent url(http://www.gstatic.com/buzz/api/images/buzz-counter-long.gif) 0 0 no-repeat;
+  display: inline-block;
+  text-align:center;
+  margin: 0;
+  padding: 0 0 0 58px;
+  width:36px;
+  line-height: 18px;
+  height:18px;
+  color:black;
+  font-family:sans-serif;
+  text-decoration: none;
+  font-size:11px;
+  font-weight:bold;
+}
+
 </style>
 
 <script src="date.extensions.js"></script>
@@ -282,11 +326,63 @@ function showBuzz() {
   }
 }
 
+
+var current_url = null;
+
+function buzzThisPage() {
+  window.open(
+    "http://www.google.com/buzz/post?" +
+    "url=" + (current_url || ''),
+    "chromebuzz",
+    "resizable=0,scrollbars=0,width=690,height=415,dialog=yes,alwaysRaised=yes"
+  );
+
+  return false;
+}
+
+chrome.tabs.getSelected(null, function(tab) {
+  current_url = tab.url;
+
+  var creq = new XMLHttpRequest();
+  creq.open(
+      "GET",
+      "https://www.googleapis.com/buzz/v1/activities/count?alt=json&key=AIzaSyAdVrKrox29JXA1mIALphYg9GIWI9zDiA8&url=" + encodeURIComponent(current_url),
+      true);
+  creq.onload = function() {
+    var buzz_count = document.getElementById("buzz-count");
+    var count = JSON.parse(creq.responseText).data.counts[current_url][0].count;
+    var size;
+    if(size >= 1000000) size = 1000000;
+    else if(size >= 100000) size = 100000;
+    else if(size >= 10000) size = 10000;
+    else if(size >= 1000) size = 1000;
+    else size = 100;
+
+    buzz_count.className = 'buzz-' + size;
+    buzz_count.innerHTML = count;
+  };
+  creq.onerror = function() {
+    console.error(creq.responseText);
+    var buzz_count = document.getElementById("buzz-count");
+    buzz_count.className = 'buzz-100';
+    buzz_count.innerHTML = '0';
+  };
+  creq.send(null);
+});
+
+
+/* start everything */
 if(ik == null) {
-    get_iked();
+  get_iked();
 } else {
-    get_buzzed();
+  get_buzzed();
 }
 </script>
 
 <a target="buzz" href="https://mail.google.com/mail/#buzz"><img class="buzz_logo" src="buzz_logo_small.png"></a>
+
+<a class="google-buzz-button" href="http://www.google.com/buzz/post" onclick="buzzThisPage();return false;">
+  <span class="buzz-counter-long">
+    <span class="buzz-100" id="buzz-count"></span>
+  </span>
+</a>
